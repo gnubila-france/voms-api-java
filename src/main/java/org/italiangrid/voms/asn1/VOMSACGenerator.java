@@ -31,9 +31,8 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.DEREncodable;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DERNull;
-import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
@@ -44,6 +43,7 @@ import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.cert.AttributeCertificateHolder;
 import org.bouncycastle.cert.AttributeCertificateIssuer;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509AttributeCertificateHolder;
 import org.bouncycastle.cert.X509v2AttributeCertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
@@ -331,49 +331,52 @@ public class VOMSACGenerator implements VOMSConstants {
 
 		builder.addAttribute(VOMS_FQANS_OID,
 			buildFQANsAttributeContent(fqans, policyAuthorityInfo));
-
-		if (gas != null && !gas.isEmpty())
-			builder
-			.addExtension(
-				VOMS_GENERIC_ATTRS_OID,
-				false,
-				buildGAExtensionContent(generationProperties, gas,
-					policyAuthorityInfo));
-
-		if (targets != null && !targets.isEmpty())
-			builder.addExtension(X509Extension.targetInformation, true,
-				buildTargetsExtensionContent(generationProperties, targets));
-
-		if (!generationProperties
-			.contains(ACGenerationProperties.SKIP_AC_CERTS_EXTENSION))
-			builder.addExtension(VOMS_CERTS_OID, false,
-				buildACCertsExtensionContent(generationProperties));
-
-		if (generationProperties
-			.contains(ACGenerationProperties.INCLUDE_FAKE_CRITICAL_EXTENSION))
-			builder.addExtension(FAKE_EXT_OID, true, new DERSequence());
-
-		boolean noRevAvailIsCritical = false;
-		boolean akidIsCritical = false;
-
-
-		if (generationProperties
-			.contains(ACGenerationProperties.INCLUDE_CRITICAL_NO_REV_AVAIL_EXTENSION))
-			noRevAvailIsCritical = true;
-
-		if (generationProperties
-			.contains(ACGenerationProperties.INCLUDE_CRITICAL_AKID_EXTENSION)) 
-			akidIsCritical = true;
-
-		builder.addExtension(X509Extension.noRevAvail, 
-			noRevAvailIsCritical, 
-			new DERNull());
-
-		AuthorityKeyIdentifier akid = buildAuthorityKeyIdentifier();
-
-		builder.addExtension(X509Extension.authorityKeyIdentifier, 
-			akidIsCritical,
-			akid != null ? akid : new DERNull());
+		try {
+			if (gas != null && !gas.isEmpty())
+				builder
+				.addExtension(
+					VOMS_GENERIC_ATTRS_OID,
+					false,
+					buildGAExtensionContent(generationProperties, gas,
+						policyAuthorityInfo));
+	
+			if (targets != null && !targets.isEmpty())
+				builder.addExtension(X509Extension.targetInformation, true,
+					buildTargetsExtensionContent(generationProperties, targets));
+	
+			if (!generationProperties
+				.contains(ACGenerationProperties.SKIP_AC_CERTS_EXTENSION))
+				builder.addExtension(VOMS_CERTS_OID, false,
+					buildACCertsExtensionContent(generationProperties));
+	
+			if (generationProperties
+				.contains(ACGenerationProperties.INCLUDE_FAKE_CRITICAL_EXTENSION))
+				builder.addExtension(FAKE_EXT_OID, true, new DERSequence());
+	
+			boolean noRevAvailIsCritical = false;
+			boolean akidIsCritical = false;
+	
+	
+			if (generationProperties
+				.contains(ACGenerationProperties.INCLUDE_CRITICAL_NO_REV_AVAIL_EXTENSION))
+				noRevAvailIsCritical = true;
+	
+			if (generationProperties
+				.contains(ACGenerationProperties.INCLUDE_CRITICAL_AKID_EXTENSION)) 
+				akidIsCritical = true;
+	
+			builder.addExtension(X509Extension.noRevAvail, 
+				noRevAvailIsCritical, 
+				DERNull.INSTANCE);
+	
+			AuthorityKeyIdentifier akid = buildAuthorityKeyIdentifier();
+	
+			builder.addExtension(X509Extension.authorityKeyIdentifier, 
+				akidIsCritical,
+				akid != null ? akid : DERNull.INSTANCE);
+		} catch (CertIOException e) {
+			throw new VOMSError(e.getMessage(), e);
+		}
 
 		return builder.build(getSigner(generationProperties));
 
@@ -390,19 +393,19 @@ public class VOMSACGenerator implements VOMSConstants {
 		DERSequence acSeq = new DERSequence(vomsACs);
 
 		CertificateExtension ext = new CertificateExtension(
-			VOMS_EXTENSION_OID.getId(), acSeq.toASN1Object(), false);
+			VOMS_EXTENSION_OID.getId(), acSeq.toASN1Primitive(), false);
 
 		return ext;
 	}
 
-	private DEREncodable getCertAsDEREncodable(X509Certificate cert) {
+	private ASN1Primitive getCertAsDEREncodable(X509Certificate cert) {
 
 		try {
 			byte[] certBytes = cert.getEncoded();
 
 			ByteArrayInputStream bais = new ByteArrayInputStream(certBytes);
 			ASN1InputStream is = new ASN1InputStream(bais);
-			DERObject derCert = is.readObject();
+			ASN1Primitive derCert = is.readObject();
 			is.close();
 			return derCert;
 

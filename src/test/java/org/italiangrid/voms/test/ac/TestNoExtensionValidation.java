@@ -15,6 +15,7 @@
  */
 package org.italiangrid.voms.test.ac;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -52,7 +53,7 @@ public class TestNoExtensionValidation implements Fixture{
 	}
 
 	@Test
-	public void testNoExtensionValidation() throws InvalidKeyException, CertificateParsingException, SignatureException, NoSuchAlgorithmException {
+	public void testNoExtensionValidation() throws InvalidKeyException, CertificateParsingException, SignatureException, NoSuchAlgorithmException, IOException {
 		ProxyCertificateOptions options = new ProxyCertificateOptions(cred.getCertificateChain());
 		options.setType(ProxyType.LEGACY);
 		
