@@ -187,6 +187,12 @@
       <groupId>eu.eu-emi.security</groupId>
       <artifactId>canl</artifactId>
       <version>${canlVersion}</version>
+      <exclusions>
+      	<exclusion>
+      		<artifactId>bcprov-jdk15on</artifactId>
+      		<groupId>org.bouncycastle</groupId>
+      	</exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
