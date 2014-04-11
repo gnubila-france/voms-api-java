@@ -242,20 +242,18 @@
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
-      <distributionManagement>
-        <repository>
-          <id>cnaf-releases</id>
-          <name>CNAF releases</name>
-          <url>http://radiohead.cnaf.infn.it:8081/nexus/content/repositories/cnaf-releases/</url>
-        </repository>
-
-        <snapshotRepository>
-          <id>cnaf-snapshots</id>
-          <name>CNAF snapshots</name>
-          <url>http://radiohead.cnaf.infn.it:8081/nexus/content/repositories/cnaf-snapshots/</url>
-        </snapshotRepository>
-
-      </distributionManagement>
+      	<distributionManagement>
+		<repository>
+			<id>maatg-fr-releases</id>
+			<name>maatG France Releases Repository</name>
+			<url>http://nexus.maatg.fr/content/repositories/maatg-fr-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>maatg-fr-snapshots</id>
+			<name>maatG France Snapshots Repository</name>
+			<url>http://nexus.maatg.fr/content/repositories/maatg-fr-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
     </profile>
 
     <profile>
